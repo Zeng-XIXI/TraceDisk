@@ -1,0 +1,11 @@
+[package]
+name = "tracedisk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Read-only disk image recovery CLI"
+
+[dependencies]
+tracedisk-core = { path = "../tracedisk-core" }
+

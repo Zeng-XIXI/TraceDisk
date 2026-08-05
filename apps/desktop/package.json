@@ -1,0 +1,31 @@
+{
+  "name": "tracedisk-desktop-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "bundle:mac": "tauri build --bundles app && codesign --force --deep --sign - ../../target/release/bundle/macos/TraceDisk.app",
+    "release:mac": "../../scripts/package-macos.sh",
+    "bundle:windows": "tauri build --bundles nsis",
+    "release:windows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/package-windows.ps1",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-dialog": "^2.7.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.0"
+  }
+}
