@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Channel, invoke } from "@tauri-apps/api/core";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 
@@ -156,26 +156,63 @@ type AccessGateProps = {
   onVerified: () => void;
 };
 
+type LicenseState = {
+  machineCode: string;
+  authorized: boolean;
+  status: string;
+  expiresAt: number | null;
+  message: string;
+};
+
 function AccessGate({ onVerified }: AccessGateProps) {
   const [code, setCode] = useState("");
+  const [licenseState, setLicenseState] = useState<LicenseState | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [machineCodeCopied, setMachineCodeCopied] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void invoke<LicenseState>("get_license_state")
+      .then((state) => {
+        if (!active) return;
+        setLicenseState(state);
+        if (state.authorized) onVerified();
+      })
+      .catch((caught) => {
+        if (active) setValidationError(caught instanceof Error ? caught.message : String(caught));
+      });
+    return () => { active = false; };
+  }, [onVerified]);
+
+  async function copyMachineCode() {
+    if (!licenseState?.machineCode) return;
+    try {
+      await navigator.clipboard.writeText(licenseState.machineCode);
+      setMachineCodeCopied(true);
+      window.setTimeout(() => setMachineCodeCopied(false), 1600);
+    } catch {
+      setValidationError("无法访问剪贴板，请手动选择并复制机器码");
+    }
+  }
 
   async function submitAccessCode(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!code) {
-      setValidationError("请输入访问验证码");
+    const normalized = code.trim();
+    if (!normalized) {
+      setValidationError("请输入离线许可证");
       return;
     }
 
     setIsVerifying(true);
     setValidationError(null);
     try {
-      const verified = await invoke<boolean>("verify_access_code", { code });
-      if (verified) {
+      const state = await invoke<LicenseState>("activate_license", { licenseCode: normalized });
+      setLicenseState(state);
+      if (state.authorized) {
         onVerified();
       } else {
-        setValidationError("验证码错误，应用即将关闭");
+        setValidationError(state.message);
       }
     } catch (caught) {
       setValidationError(caught instanceof Error ? caught.message : String(caught));
@@ -199,36 +236,44 @@ function AccessGate({ onVerified }: AccessGateProps) {
             <span className="access-lock-body"><i /></span>
           </div>
           <p className="eyebrow">ACCESS VERIFICATION</p>
-          <h1 id="access-title">输入验证码后继续</h1>
+          <h1 id="access-title">激活这台 TraceDisk</h1>
           <p className="access-description">
-            为保护磁盘扫描和恢复功能，本次启动必须先完成验证。验证成功仅对当前应用进程有效。
+            复制本机机器码交给软件提供方，收到许可证后粘贴到下方。整个验证过程不需要联网。
           </p>
+          <div className="machine-code-card">
+            <div><span>本机机器码</span><small>{licenseState ? "DEVICE SHA-256" : "正在读取设备信息"}</small></div>
+            <code>{licenseState?.machineCode ?? "读取中…"}</code>
+            <button type="button" onClick={copyMachineCode} disabled={!licenseState?.machineCode}>
+              {machineCodeCopied ? "已复制" : "复制机器码"}
+            </button>
+          </div>
           <form className="access-form" onSubmit={submitAccessCode}>
-            <label htmlFor="access-code">访问验证码</label>
+            <label htmlFor="access-code">离线许可证</label>
             <div className={`access-input-wrap ${validationError ? "access-input-error" : ""}`}>
-              <span aria-hidden="true">••</span>
-              <input
+              <span aria-hidden="true">ED</span>
+              <textarea
                 id="access-code"
-                type="password"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                autoFocus
-                maxLength={32}
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={140}
                 value={code}
                 disabled={isVerifying}
                 onChange={(event) => setCode(event.target.value)}
-                placeholder="请输入验证码"
+                placeholder="粘贴 119 位 TraceDisk 离线许可证"
                 aria-describedby="access-help"
-              />
+              ></textarea>
             </div>
             {validationError && <p className="access-error" role="alert">{validationError}</p>}
             <button className="access-submit" type="submit" disabled={isVerifying || !code}>
-              {isVerifying ? <><span className="spinner" />正在验证</> : "验证并进入"}
+              {isVerifying ? <><span className="spinner" />正在验签</> : "离线验证并进入"}
             </button>
           </form>
           <div className="access-security-note" id="access-help">
             <span className="status-dot" />
-            <div><strong>当前进程验证</strong><small>验证码错误时，TraceDisk 将自动关闭且不会读取任何磁盘。</small></div>
+            <div>
+              <strong>Ed25519 离线签名</strong>
+              <small>{licenseState?.expiresAt ? `当前许可证到期：${new Date(licenseState.expiresAt * 1000).toLocaleString("zh-CN")}` : "私钥不在本机；未授权时所有磁盘命令都会被 Rust 后端拒绝。"}</small>
+            </div>
           </div>
         </section>
       </main>

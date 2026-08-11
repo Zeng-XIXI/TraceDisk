@@ -1859,7 +1859,8 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
-            auth::verify_access_code,
+            auth::get_license_state,
+            auth::activate_license,
             inspect_image,
             scan_raw_device,
             cancel_active_scan,

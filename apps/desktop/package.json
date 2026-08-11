@@ -9,6 +9,7 @@
     "bundle:mac": "tauri build --bundles app && codesign --force --deep --sign - ../../target/release/bundle/macos/TraceDisk.app",
     "release:mac": "../../scripts/package-macos.sh",
     "bundle:windows": "tauri build --bundles nsis",
+    "release": "node ../../scripts/release.mjs",
     "release:windows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/package-windows.ps1",
     "preview": "vite preview",
     "tauri": "tauri"

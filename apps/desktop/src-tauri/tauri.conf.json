@@ -29,7 +29,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app"],
+    "targets": [
+      "app"
+    ],
     "category": "Utility",
     "shortDescription": "Read-only camera card image recovery toolkit",
     "longDescription": "TraceDisk inspects camera SD card images without modifying source data.",

@@ -42,7 +42,7 @@ button:focus-visible {
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
   isolation: isolate;
 }
 
@@ -90,7 +90,7 @@ button:focus-visible {
 }
 
 .access-card {
-  width: min(440px, calc(100vw - 48px));
+  width: min(580px, calc(100vw - 48px));
   padding: 34px 38px 32px;
   border: 1px solid rgba(104, 205, 192, 0.18);
   border-radius: 24px;
@@ -195,7 +195,7 @@ button:focus-visible {
 }
 
 .access-input-wrap {
-  height: 50px;
+  min-height: 76px;
   display: flex;
   align-items: center;
   gap: 11px;
@@ -217,15 +217,18 @@ button:focus-visible {
   letter-spacing: 1px;
 }
 
-.access-input-wrap input {
+.access-input-wrap input,
+.access-input-wrap textarea {
   width: 100%;
   border: 0;
   outline: 0;
   color: #eaf2f8;
   background: transparent;
-  font: 15px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: 0.12em;
+  font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.04em;
 }
+
+.access-input-wrap textarea { height: 62px; padding: 10px 0; resize: none; word-break: break-all; }
 
 .access-input-wrap input::placeholder {
   color: #49616e;
@@ -233,6 +236,23 @@ button:focus-visible {
   font-size: 11px;
   letter-spacing: 0;
 }
+
+.access-input-wrap textarea::placeholder { color: #49616e; font-family: inherit; letter-spacing: 0; }
+
+.machine-code-card {
+  margin: 0 0 20px;
+  padding: 13px 14px;
+  border: 1px solid rgba(66, 218, 192, 0.18);
+  border-radius: 12px;
+  background: rgba(4, 14, 22, 0.62);
+  text-align: left;
+}
+.machine-code-card > div { display: flex; justify-content: space-between; gap: 14px; }
+.machine-code-card span { color: #9db1ba; font-size: 10px; font-weight: 680; }
+.machine-code-card small { color: #476a72; font-size: 8px; }
+.machine-code-card code { display: block; margin-top: 9px; color: #73d8c6; font: 10px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+.machine-code-card button { margin-top: 8px; padding: 0; border: 0; background: transparent; color: #4fbca8; font-size: 9px; cursor: pointer; }
+.machine-code-card button:disabled { opacity: 0.4; cursor: wait; }
 
 .access-input-error {
   border-color: rgba(238, 116, 99, 0.54);
@@ -362,7 +382,7 @@ button:focus-visible {
 
   .access-input-wrap,
   .access-submit {
-    height: 43px;
+    min-height: 43px;
   }
 
   .access-submit {
