@@ -59,11 +59,14 @@ npm install
 npm run tauri dev
 ```
 
-Every desktop launch first shows an access-code page. The current development
-code is `123456`; successful validation unlocks only the current process, and an
-incorrect code closes the application before disk access. All disk commands
-also enforce the authenticated state in Rust. The planned one-minute Java
-service integration is described in
+Every desktop launch verifies a machine-bound Ed25519 license locally. The
+activation page shows a SHA-256 machine code derived from the operating system's
+stable device identifier; the customer sends that code to the license issuer
+and imports the returned license. No network request or signing secret exists in
+the desktop application. A valid license is saved locally and rechecked on each
+launch, and all disk commands also enforce the authorized state in Rust. Build
+with `TRACEDISK_LICENSE_PUBLIC_KEY` set to the issuer's Base64 public key. The
+format, key setup, and offline-clock limitation are described in
 [`docs/AUTHENTICATION.md`](docs/AUTHENTICATION.md).
 
 If you only know the mounted SD card path (for example `/Volumes/SD_Card` on
@@ -121,6 +124,30 @@ The local preview build is ad-hoc signed but not notarized with an Apple
 Developer ID. Public download instructions must therefore include the macOS
 Control-click **Open** flow and the Full Disk Access setup described in the
 release notes.
+
+## Unified release command
+
+After each update, prepare and build a versioned release with the cross-platform
+Node script:
+
+```bash
+cd apps/desktop
+npm run release -- 0.1.1
+```
+
+The first run updates the Cargo, npm, and Tauri versions together. If the
+version notes do not exist, it creates `docs/releases/v0.1.1.md` and stops so
+the notes can be completed. Run the same command again to execute formatting,
+tests, Clippy, the frontend build, and the native platform packager. Existing
+artifacts for the same version are protected from accidental overwrite; use
+`--force` only when intentionally rebuilding that version.
+
+Useful non-publishing modes:
+
+```bash
+npm run release -- 0.1.1 --prepare-only
+npm run release -- 0.1.1 --check
+```
 
 ## Windows application
 
