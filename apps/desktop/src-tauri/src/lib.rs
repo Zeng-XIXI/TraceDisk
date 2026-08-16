@@ -1,4 +1,3 @@
-mod auth;
 mod device;
 
 use serde::{Deserialize, Serialize};
@@ -307,7 +306,6 @@ fn create_empty_control_file(path: &Path) -> Result<(), String> {
 
 #[tauri::command]
 async fn inspect_image(path: String) -> Result<String, String> {
-    auth::require_authenticated()?;
     tauri::async_runtime::spawn_blocking(move || {
         tracedisk_core::inspect_image(path)
             .map(|report| report.to_json_pretty())
@@ -324,7 +322,6 @@ async fn scan_raw_device(
     mode: String,
     on_progress: Channel<DeviceScanProgress>,
 ) -> Result<String, String> {
-    auth::require_authenticated()?;
     if mode != "metadata" && mode != "deep" {
         return Err("未知扫描模式，只接受 metadata 或 deep".into());
     }
@@ -338,7 +335,6 @@ async fn scan_raw_device(
 
 #[tauri::command]
 fn cancel_active_scan() -> Result<bool, String> {
-    auth::require_authenticated()?;
     let cancel_path = active_cancel_path()
         .lock()
         .map_err(|_| "扫描状态锁已损坏".to_string())?
@@ -362,7 +358,6 @@ fn cancel_active_scan() -> Result<bool, String> {
 
 #[tauri::command]
 fn open_full_disk_access_settings() -> Result<(), String> {
-    auth::require_authenticated()?;
     #[cfg(target_os = "macos")]
     {
         let status = Command::new("/usr/bin/open")
@@ -460,7 +455,6 @@ async fn recover_candidate(
     extents: Vec<RecoveryExtent>,
     output_path: String,
 ) -> Result<String, String> {
-    auth::require_authenticated()?;
     tauri::async_runtime::spawn_blocking(move || {
         recover_candidate_blocking(
             &raw_device_path,
@@ -476,7 +470,6 @@ async fn recover_candidate(
 
 #[tauri::command]
 fn check_export_destination(output_directory: String) -> Result<DestinationCapacity, String> {
-    auth::require_authenticated()?;
     let path = validate_output_directory(&output_directory)?;
     Ok(DestinationCapacity {
         path: path.to_string_lossy().into_owned(),
@@ -492,7 +485,6 @@ async fn recover_candidates_batch(
     items: Vec<BatchRecoveryItem>,
     on_progress: Channel<BatchExportProgress>,
 ) -> Result<BatchExportResult, String> {
-    auth::require_authenticated()?;
     tauri::async_runtime::spawn_blocking(move || {
         recover_candidates_batch_blocking(
             &raw_device_path,
@@ -1859,8 +1851,6 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
-            auth::get_license_state,
-            auth::activate_license,
             inspect_image,
             scan_raw_device,
             cancel_active_scan,

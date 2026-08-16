@@ -8,6 +8,28 @@ an existing image. Direct scanning does not create a card-sized local copy.
 > the card before raw access, opens the source read-only, and requires recovered
 > files to be saved to a different disk.
 
+# How to useTraceDisk
+
+首先进入软件后，选择插入电脑的SD卡或存储设备
+
+![PixPin_2026-08-04_23-12-09](./docs/PixPin_2026-08-04_23-12-09.png)
+
+![PixPin_2026-08-04_23-12-31](./docs/PixPin_2026-08-04_23-12-31.png)
+
+点击开始快速扫描
+
+![PixPin_2026-08-04_23-13-19](./docs/PixPin_2026-08-04_23-13-19.png)
+
+![PixPin_2026-08-04_23-13-32](./docs/PixPin_2026-08-04_23-13-32.png)
+
+扫描结果会出现在列表中，并且支持多选和导出
+
+![PixPin_2026-08-04_23-13-53](./docs/PixPin_2026-08-04_23-13-53.png)
+
+若仍然没有得出想要的文件，要点击【继续深度扫描】
+
+![PixPin_2026-08-04_23-14-06](./docs/PixPin_2026-08-04_23-14-06.png)
+
 ## Current milestone
 
 - Read-only image access with checked offsets
@@ -54,20 +76,18 @@ crates/
 ## Desktop application
 
 ```bash
+export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
+
+## 本地开发调试（不会生成安装包）
 cd apps/desktop
 npm install
 npm run tauri dev
 ```
 
-Every desktop launch verifies a machine-bound Ed25519 license locally. The
-activation page shows a SHA-256 machine code derived from the operating system's
-stable device identifier; the customer sends that code to the license issuer
-and imports the returned license. No network request or signing secret exists in
-the desktop application. A valid license is saved locally and rechecked on each
-launch, and all disk commands also enforce the authorized state in Rust. Build
-with `TRACEDISK_LICENSE_PUBLIC_KEY` set to the issuer's Base64 public key. The
-format, key setup, and offline-clock limitation are described in
-[`docs/AUTHENTICATION.md`](docs/AUTHENTICATION.md).
+TraceDisk starts directly in the recovery workspace. It does not collect a
+machine code, require an activation code, contact a verification service, or
+embed a license key. The read-only source-device protections and administrator
+checks remain enabled for every user.
 
 If you only know the mounted SD card path (for example `/Volumes/SD_Card` on
 macOS or `E:\` on Windows), choose **选择已挂载 SD 卡** or enter that path in
@@ -90,6 +110,9 @@ another disk without overwriting existing files.
 Build the macOS application bundle with:
 
 ```bash
+export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
+
+#编译生产版本，产出 Mac 可分发 .app / .dmg 安装包（给用户安装）
 npm run bundle:mac
 ```
 

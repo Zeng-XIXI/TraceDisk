@@ -37,7 +37,6 @@ pub struct SdCardInfo {
 
 #[tauri::command]
 pub async fn resolve_sd_card_path(path: String) -> Result<SdCardInfo, String> {
-    crate::auth::require_authenticated()?;
     tauri::async_runtime::spawn_blocking(move || resolve_sd_card_path_blocking(&path))
         .await
         .map_err(|error| format!("device inspection task failed: {error}"))?
